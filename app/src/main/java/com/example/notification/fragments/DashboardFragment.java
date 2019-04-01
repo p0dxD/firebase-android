@@ -1,4 +1,4 @@
-package com.example.notification;
+package com.example.notification.fragments;
 
 
 import android.os.Bundle;
@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -17,8 +18,8 @@ import com.example.notification.R;
  */
 public class DashboardFragment extends Fragment {
 
-    public TextView countTv;
-    public Button countBtn;
+    public WebView webView;
+
 
     public DashboardFragment() {
         // Required empty public constructor
@@ -28,22 +29,10 @@ public class DashboardFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_layout, container, false);
-        countTv = (TextView) view.findViewById(R.id.count_tv);
-        countTv.setText("0");
-        countBtn = (Button) view.findViewById(R.id.count_btn);
-        countBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                increaseCount();
-            }
-        });
+        webView =  view.findViewById(R.id.webview);
+        webView.loadUrl("http://www.example.com");
+
         return view;
-    }
-
-    private void increaseCount() {
-        int current = Integer.parseInt((String) countTv.getText());
-        countTv.setText(String.valueOf(current+1));
-
     }
 
 }

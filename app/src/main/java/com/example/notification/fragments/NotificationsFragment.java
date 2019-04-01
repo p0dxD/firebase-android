@@ -1,4 +1,4 @@
-package com.example.notification.Fragments;
+package com.example.notification.fragments;
 
 
 import android.os.Bundle;

@@ -21,6 +21,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -30,8 +31,18 @@ import android.util.Log;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
+
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+import static com.example.notification.MainActivity.PREF_NAME;
 
 /**
  * NOTE: There can only be one service in each app that receives FCM messages. If multiple
@@ -47,6 +58,9 @@ import androidx.work.WorkManager;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
+    private OkHttpClient client;
+    private static String uniqueID = null;
+    private static final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
 
     /**
      * Called when message is received.
@@ -78,21 +92,25 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
-
-            if (/* Check if data needs to be processed by long running job */ true) {
+            Map<String, String> data = remoteMessage.getData();
+            Log.d(TAG, "Message data payload: " + data);
+            /* Check if data needs to be processed by long running job */
+            if (remoteMessage.getData().size() > 1) {
                 // For long-running tasks (10 seconds or more) use WorkManager.
                 scheduleJob();
             } else {
                 // Handle message within 10 seconds
-                handleNow();
+                handleNow(data);
             }
 
         }
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+            String message = remoteMessage.getNotification().getBody();
+            Log.d(TAG, "Message Notification Body: " + message);
+            sendNotification(message);
+            Log.d(TAG, "Message done" );
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM
@@ -133,8 +151,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     /**
      * Handle time allotted to BroadcastReceivers.
      */
-    private void handleNow() {
-        Log.d(TAG, "Short lived task is done.");
+    private void handleNow(Map data) {
+        Map<String, String> map = data;
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            sendNotification(entry.getValue());
+        }
     }
 
     /**
@@ -147,6 +168,31 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      */
     private void sendRegistrationToServer(String token) {
         // TODO: Implement this method to send token to your app server.
+        Log.d(TAG, "Setting token for employee.");
+        client = new OkHttpClient();
+        SharedPreferences settings = getSharedPreferences(PREF_NAME, 0);
+
+        String employeeIds = settings.getString("id", "");
+
+        if (employeeIds == null || employeeIds.equals("")) {
+            Log.d(TAG, "Employee not set yet.");
+            return;
+        }
+
+        Request request = new Request.Builder()
+                .url("http://192.168.1.251:8080/token")
+                .addHeader("token", token)
+                .addHeader("employeeId", employeeIds)
+                .build();
+
+        Call call = client.newCall(request);
+        Response response = null;
+        try {
+            response = call.execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, "Short lived task is done: "+ response);
     }
 
     /**
@@ -183,5 +229,20 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+    }
+
+    public synchronized static String id(Context context) {
+        if (uniqueID == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(
+                    PREF_UNIQUE_ID, Context.MODE_PRIVATE);
+            uniqueID = sharedPrefs.getString(PREF_UNIQUE_ID, null);
+            if (uniqueID == null) {
+                uniqueID = UUID.randomUUID().toString();
+                SharedPreferences.Editor editor = sharedPrefs.edit();
+                editor.putString(PREF_UNIQUE_ID, uniqueID);
+                editor.apply();
+            }
+        }
+        return uniqueID;
     }
 }
