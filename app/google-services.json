@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "407683806449",
+    "firebase_url": "https://android-performance-dashboard.firebaseio.com",
+    "project_id": "android-performance-dashboard",
+    "storage_bucket": "android-performance-dashboard.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407683806449:android:8213774f26720826",
+        "android_client_info": {
+          "package_name": "com.mastercard.android.performance.dashboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "407683806449-66genga7jo7352iblvb7vpo96khdf9u2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNv7DqR1tnr0WxLT5jba_1NK8JS8hitE0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
